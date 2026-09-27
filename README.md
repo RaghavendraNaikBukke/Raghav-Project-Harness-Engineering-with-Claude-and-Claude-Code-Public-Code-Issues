@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Claude AI Engineer — Harness Engineering
 
 Source-of-truth repository for the exercises in the **Claude AI Engineer: Harness Engineering** course (`cd15315`). The course teaches the engineering around a Claude agent — the loop that drives it, the state and context strategies that keep it tractable over long runs, the orchestration that coordinates multiple invocations, and the Claude Code configuration a team works inside.
@@ -80,3 +81,7 @@ See [LICENSE.md](LICENSE.md). Educational content © Udacity, Inc., licensed CC 
 voc-42489856521610654746536ab36cb261e481.22468506
 
 voc-42489856521610654746536ab36cb261e481.22468506
+=======
+# Raghav-Project-Harness-Engineering-with-Claude-and-Claude-Code
+Harness Engineering
+>>>>>>> cd859f16217b706adae324229f060e00ef9cc36d
