@@ -1,0 +1,725 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.0, pytest-9.1.1, pluggy-1.6.0 -- /workspace/Engineer a Long-Conversation Context Strategy for a Retail Support Copilot/04-assemble-and-locate/solution/.venv/bin/python3.13
+cachedir: .pytest_cache
+rootdir: /workspace/Engineer a Long-Conversation Context Strategy for a Retail Support Copilot/04-assemble-and-locate/solution
+configfile: pyproject.toml
+plugins: anyio-4.15.1
+collecting ... collected 30 items
+
+tests/test_antipatterns.py::test_pruner_has_no_anthropic_import PASSED   [  3%]
+tests/test_antipatterns.py::test_only_tokens_module_uses_count_tokens_or_heuristic PASSED [  6%]
+tests/test_antipatterns.py::test_assemble_module_section_order_contract PASSED [ 10%]
+tests/test_antipatterns.py::test_assembled_context_active_segment_byte_exact PASSED [ 13%]
+tests/test_antipatterns.py::test_budget_json_section_counts_sum_consistently PASSED [ 16%]
+tests/test_assemble.py::test_assemble_section_order_exact PASSED         [ 20%]
+tests/test_assemble.py::test_active_segment_byte_exact PASSED            [ 23%]
+tests/test_assemble.py::test_no_interleaving_of_resolved_and_active PASSED [ 26%]
+tests/test_case_facts.py::test_required_fields_has_12_entries PASSED     [ 30%]
+tests/test_case_facts.py::test_required_fields_cover_three_issues PASSED [ 33%]
+tests/test_case_facts.py::test_case_facts_dataclass_has_required_fields PASSED [ 36%]
+tests/test_case_facts.py::test_to_markdown_uses_top_level_header_and_fixed_key_order PASSED [ 40%]
+tests/test_case_facts.py::test_extraction_error_lists_missing_fields PASSED [ 43%]
+tests/test_compressor.py::test_summary_dataclass_carries_token_counts PASSED [ 46%]
+tests/test_compressor.py::test_compressed_dataclass_carries_active_text_and_id PASSED [ 50%]
+tests/test_compressor.py::test_summarize_segment_refuses_to_compress_the_active_segment PASSED [ 53%]
+tests/test_compressor.py::test_compression_prompt_is_committed_and_nontrivial PASSED [ 56%]
+tests/test_pruner.py::test_lookup_order_fixture_has_at_least_40_fields PASSED [ 60%]
+tests/test_pruner.py::test_pruner_keeps_exactly_the_contracted_set PASSED [ 63%]
+tests/test_pruner.py::test_pruned_output_under_200_tokens FAILED         [ 66%]
+tests/test_pruner.py::test_pruner_raises_on_missing_required_field PASSED [ 70%]
+tests/test_tokens.py::test_count_zero_for_empty_string PASSED            [ 73%]
+tests/test_tokens.py::test_count_returns_positive_int_for_nonempty_text FAILED [ 76%]
+tests/test_tokens.py::test_count_grows_with_length FAILED                [ 80%]
+tests/test_tokens.py::test_methodology_returns_descriptive_string PASSED [ 83%]
+tests/test_transcript.py::test_transcript_loader_turn_count PASSED       [ 86%]
+tests/test_transcript.py::test_transcript_loader_partition_boundaries PASSED [ 90%]
+tests/test_transcript.py::test_transcript_loader_token_count_in_engineered_range FAILED [ 93%]
+tests/test_transcript.py::test_active_turns_accessor PASSED              [ 96%]
+tests/test_transcript.py::test_canonical_token_function_is_used_everywhere FAILED [100%]
+
+=================================== FAILURES ===================================
+_____________________ test_pruned_output_under_200_tokens ______________________
+
+raw = {'order_id': 'ORD-77310', 'order_date': '2026-04-12T14:22:08Z', 'order_total_usd': 142.47, 'fulfillment_status': 'delivered', ...}
+
+    def test_pruned_output_under_200_tokens(raw):
+        pruned = prune_lookup_order(raw)
+        serialized = json.dumps(pruned)
+>       assert count(serialized) <= 200
+               ^^^^^^^^^^^^^^^^^
+
+tests/test_pruner.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+retail_context/tokens.py:38: in count
+    resp = get_client().messages.count_tokens(
+.venv/lib/python3.13/site-packages/anthropic/resources/messages/messages.py:1228: in count_tokens
+    return self._post(
+.venv/lib/python3.13/site-packages/anthropic/_base_client.py:1324: in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <anthropic.Anthropic object at 0x7ee87ca3f620>
+cast_to = <class 'anthropic.types.message_tokens_count.MessageTokensCount'>
+options = FinalRequestOptions(method='post', url='/v1/messages/count_tokens', params={}, headers=NOT_GIVEN, max_retries=NOT_GIVE...elivered", "return_eligible_until": "2026-05-12T23:59:59Z"}'}], 'model': 'claude-haiku-4-5-20251001'}, extra_json=None)
+stream = False, stream_cls = None
+
+    def request(
+        self,
+        cast_to: Type[ResponseT],
+        options: FinalRequestOptions,
+        *,
+        stream: bool = False,
+        stream_cls: type[_StreamT] | None = None,
+    ) -> ResponseT | _StreamT:
+        cast_to = self._maybe_override_cast_to(cast_to, options)
+    
+        # create a copy of the options we were given so that if the
+        # options are mutated later & we then retry, the retries are
+        # given the original options
+        input_options = model_copy(options)
+        if input_options.idempotency_key is None and input_options.method.lower() != "get":
+            # ensure the idempotency key is reused between requests
+            input_options.idempotency_key = self._idempotency_key()
+    
+        response: httpx.Response | None = None
+        max_retries = input_options.get_max_retries(self.max_retries)
+    
+        retries_taken = 0
+        for retries_taken in range(max_retries + 1):
+            options = model_copy(input_options)
+            options = self._prepare_options(options)
+    
+            remaining_retries = max_retries - retries_taken
+            request = self._build_request(options, retries_taken=retries_taken)
+            self._prepare_request(request)
+    
+            kwargs: HttpxSendArgs = {}
+            if self.custom_auth is not None:
+                kwargs["auth"] = self.custom_auth
+    
+            if options.follow_redirects is not None:
+                kwargs["follow_redirects"] = options.follow_redirects
+    
+            log.debug("Sending HTTP Request: %s %s", request.method, request.url)
+    
+            response = None
+            try:
+                response = self._client.send(
+                    request,
+                    stream=stream or self._should_stream_response_body(request=request),
+                    **kwargs,
+                )
+            except httpx.TimeoutException as err:
+                log.debug("Encountered httpx.TimeoutException", exc_info=True)
+    
+                if remaining_retries > 0:
+                    self._sleep_for_retry(
+                        retries_taken=retries_taken,
+                        max_retries=max_retries,
+                        options=input_options,
+                        response=None,
+                    )
+                    continue
+    
+                log.debug("Raising timeout error")
+                raise APITimeoutError(request=request) from err
+            except Exception as err:
+                log.debug("Encountered Exception", exc_info=True)
+    
+                if remaining_retries > 0:
+                    self._sleep_for_retry(
+                        retries_taken=retries_taken,
+                        max_retries=max_retries,
+                        options=input_options,
+                        response=None,
+                    )
+                    continue
+    
+                log.debug("Raising connection error")
+                raise APIConnectionError(request=request) from err
+    
+            log.debug(
+                'HTTP Response: %s %s "%i %s" %s',
+                request.method,
+                request.url,
+                response.status_code,
+                response.reason_phrase,
+                response.headers,
+            )
+            log.debug("request_id: %s", response.headers.get("request-id"))
+    
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
+                log.debug("Encountered httpx.HTTPStatusError", exc_info=True)
+    
+                if remaining_retries > 0 and self._should_retry(err.response):
+                    err.response.close()
+                    self._sleep_for_retry(
+                        retries_taken=retries_taken,
+                        max_retries=max_retries,
+                        options=input_options,
+                        response=response,
+                    )
+                    continue
+    
+                # If the response is streamed then we need to explicitly read the response
+                # to completion before attempting to access the response text.
+                if not err.response.is_closed:
+                    err.response.read()
+    
+                log.debug("Re-raising status error")
+>               raise self._make_status_error_from_response(err.response) from None
+E               anthropic.AuthenticationError: Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}, 'request_id': 'req_011CfTrnMPHJSeGcV3vd65F5'}
+
+.venv/lib/python3.13/site-packages/anthropic/_base_client.py:1112: AuthenticationError
+______________ test_count_returns_positive_int_for_nonempty_text _______________
+
+    def test_count_returns_positive_int_for_nonempty_text():
+>       n = count("the quick brown fox")
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_tokens.py:16: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+retail_context/tokens.py:38: in count
+    resp = get_client().messages.count_tokens(
+.venv/lib/python3.13/site-packages/anthropic/resources/messages/messages.py:1228: in count_tokens
+    return self._post(
+.venv/lib/python3.13/site-packages/anthropic/_base_client.py:1324: in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <anthropic.Anthropic object at 0x7ee87ca3f620>
+cast_to = <class 'anthropic.types.message_tokens_count.MessageTokensCount'>
+options = FinalRequestOptions(method='post', url='/v1/messages/count_tokens', params={}, headers=NOT_GIVEN, max_retries=NOT_GIVE...essages': [{'role': 'user', 'content': 'the quick brown fox'}], 'model': 'claude-haiku-4-5-20251001'}, extra_json=None)
+stream = False, stream_cls = None
+
+    def request(
+        self,
+        cast_to: Type[ResponseT],
+        options: FinalRequestOptions,
+        *,
+        stream: bool = False,
+        stream_cls: type[_StreamT] | None = None,
+    ) -> ResponseT | _StreamT:
+        cast_to = self._maybe_override_cast_to(cast_to, options)
+    
+        # create a copy of the options we were given so that if the
+        # options are mutated later & we then retry, the retries are
+        # given the original options
+        input_options = model_copy(options)
+        if input_options.idempotency_key is None and input_options.method.lower() != "get":
+            # ensure the idempotency key is reused between requests
+            input_options.idempotency_key = self._idempotency_key()
+    
+        response: httpx.Response | None = None
+        max_retries = input_options.get_max_retries(self.max_retries)
+    
+        retries_taken = 0
+        for retries_taken in range(max_retries + 1):
+            options = model_copy(input_options)
+            options = self._prepare_options(options)
+    
+            remaining_retries = max_retries - retries_taken
+            request = self._build_request(options, retries_taken=retries_taken)
+            self._prepare_request(request)
+    
+            kwargs: HttpxSendArgs = {}
+            if self.custom_auth is not None:
+                kwargs["auth"] = self.custom_auth
+    
+            if options.follow_redirects is not None:
+                kwargs["follow_redirects"] = options.follow_redirects
+    
+            log.debug("Sending HTTP Request: %s %s", request.method, request.url)
+    
+            response = None
+            try:
+                response = self._client.send(
+                    request,
+                    stream=stream or self._should_stream_response_body(request=request),
+                    **kwargs,
+                )
+            except httpx.TimeoutException as err:
+                log.debug("Encountered httpx.TimeoutException", exc_info=True)
+    
+                if remaining_retries > 0:
+                    self._sleep_for_retry(
+                        retries_taken=retries_taken,
+                        max_retries=max_retries,
+                        options=input_options,
+                        response=None,
+                    )
+                    continue
+    
+                log.debug("Raising timeout error")
+                raise APITimeoutError(request=request) from err
+            except Exception as err:
+                log.debug("Encountered Exception", exc_info=True)
+    
+                if remaining_retries > 0:
+                    self._sleep_for_retry(
+                        retries_taken=retries_taken,
+                        max_retries=max_retries,
+                        options=input_options,
+                        response=None,
+                    )
+                    continue
+    
+                log.debug("Raising connection error")
+                raise APIConnectionError(request=request) from err
+    
+            log.debug(
+                'HTTP Response: %s %s "%i %s" %s',
+                request.method,
+                request.url,
+                response.status_code,
+                response.reason_phrase,
+                response.headers,
+            )
+            log.debug("request_id: %s", response.headers.get("request-id"))
+    
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
+                log.debug("Encountered httpx.HTTPStatusError", exc_info=True)
+    
+                if remaining_retries > 0 and self._should_retry(err.response):
+                    err.response.close()
+                    self._sleep_for_retry(
+                        retries_taken=retries_taken,
+                        max_retries=max_retries,
+                        options=input_options,
+                        response=response,
+                    )
+                    continue
+    
+                # If the response is streamed then we need to explicitly read the response
+                # to completion before attempting to access the response text.
+                if not err.response.is_closed:
+                    err.response.read()
+    
+                log.debug("Re-raising status error")
+>               raise self._make_status_error_from_response(err.response) from None
+E               anthropic.AuthenticationError: Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}, 'request_id': 'req_011CfTrnNFN2ZhuonX4Paaqm'}
+
+.venv/lib/python3.13/site-packages/anthropic/_base_client.py:1112: AuthenticationError
+_________________________ test_count_grows_with_length _________________________
+
+    def test_count_grows_with_length():
+>       assert count("hello world" * 100) > count("hello world")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_tokens.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+retail_context/tokens.py:38: in count
+    resp = get_client().messages.count_tokens(
+.venv/lib/python3.13/site-packages/anthropic/resources/messages/messages.py:1228: in count_tokens
+    return self._post(
+.venv/lib/python3.13/site-packages/anthropic/_base_client.py:1324: in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <anthropic.Anthropic object at 0x7ee87ca3f620>
+cast_to = <class 'anthropic.types.message_tokens_count.MessageTokensCount'>
+options = FinalRequestOptions(method='post', url='/v1/messages/count_tokens', params={}, headers=NOT_GIVEN, max_retries=NOT_GIVE...orldhello worldhello worldhello worldhello worldhello world'}], 'model': 'claude-haiku-4-5-20251001'}, extra_json=None)
+stream = False, stream_cls = None
+
+    def request(
+        self,
+        cast_to: Type[ResponseT],
+        options: FinalRequestOptions,
+        *,
+        stream: bool = False,
+        stream_cls: type[_StreamT] | None = None,
+    ) -> ResponseT | _StreamT:
+        cast_to = self._maybe_override_cast_to(cast_to, options)
+    
+        # create a copy of the options we were given so that if the
+        # options are mutated later & we then retry, the retries are
+        # given the original options
+        input_options = model_copy(options)
+        if input_options.idempotency_key is None and input_options.method.lower() != "get":
+            # ensure the idempotency key is reused between requests
+            input_options.idempotency_key = self._idempotency_key()
+    
+        response: httpx.Response | None = None
+        max_retries = input_options.get_max_retries(self.max_retries)
+    
+        retries_taken = 0
+        for retries_taken in range(max_retries + 1):
+            options = model_copy(input_options)
+            options = self._prepare_options(options)
+    
+            remaining_retries = max_retries - retries_taken
+            request = self._build_request(options, retries_taken=retries_taken)
+            self._prepare_request(request)
+    
+            kwargs: HttpxSendArgs = {}
+            if self.custom_auth is not None:
+                kwargs["auth"] = self.custom_auth
+    
+            if options.follow_redirects is not None:
+                kwargs["follow_redirects"] = options.follow_redirects
+    
+            log.debug("Sending HTTP Request: %s %s", request.method, request.url)
+    
+            response = None
+            try:
+                response = self._client.send(
+                    request,
+                    stream=stream or self._should_stream_response_body(request=request),
+                    **kwargs,
+                )
+            except httpx.TimeoutException as err:
+                log.debug("Encountered httpx.TimeoutException", exc_info=True)
+    
+                if remaining_retries > 0:
+                    self._sleep_for_retry(
+                        retries_taken=retries_taken,
+                        max_retries=max_retries,
+                        options=input_options,
+                        response=None,
+                    )
+                    continue
+    
+                log.debug("Raising timeout error")
+                raise APITimeoutError(request=request) from err
+            except Exception as err:
+                log.debug("Encountered Exception", exc_info=True)
+    
+                if remaining_retries > 0:
+                    self._sleep_for_retry(
+                        retries_taken=retries_taken,
+                        max_retries=max_retries,
+                        options=input_options,
+                        response=None,
+                    )
+                    continue
+    
+                log.debug("Raising connection error")
+                raise APIConnectionError(request=request) from err
+    
+            log.debug(
+                'HTTP Response: %s %s "%i %s" %s',
+                request.method,
+                request.url,
+                response.status_code,
+                response.reason_phrase,
+                response.headers,
+            )
+            log.debug("request_id: %s", response.headers.get("request-id"))
+    
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
+                log.debug("Encountered httpx.HTTPStatusError", exc_info=True)
+    
+                if remaining_retries > 0 and self._should_retry(err.response):
+                    err.response.close()
+                    self._sleep_for_retry(
+                        retries_taken=retries_taken,
+                        max_retries=max_retries,
+                        options=input_options,
+                        response=response,
+                    )
+                    continue
+    
+                # If the response is streamed then we need to explicitly read the response
+                # to completion before attempting to access the response text.
+                if not err.response.is_closed:
+                    err.response.read()
+    
+                log.debug("Re-raising status error")
+>               raise self._make_status_error_from_response(err.response) from None
+E               anthropic.AuthenticationError: Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}, 'request_id': 'req_011CfTrnNrqMqM51Y4oJ7GRX'}
+
+.venv/lib/python3.13/site-packages/anthropic/_base_client.py:1112: AuthenticationError
+____________ test_transcript_loader_token_count_in_engineered_range ____________
+
+t = Transcript(turns=[Turn(turn=1, role='customer', text="Hi there, I really need some help today because I am absolutely ... scared of running out of time. What can you do to help me right now?', issue_id='payment_update')], status='active')])
+
+    def test_transcript_loader_token_count_in_engineered_range(t):
+        # Baseline is a large conversation that must be reduced by >=50%. The exact
+        # count varies by tokenizer/model (heuristic ~47k; API haiku/sonnet ~38.7k;
+        # API opus ~52.3k), so this window is deliberately wide.
+>       assert 35000 <= t.token_count <= 55000, (
+                        ^^^^^^^^^^^^^
+            f"baseline token_count {t.token_count} outside expected range "
+            f"[35000, 55000] (varies by tokenizer/model)"
+        )
+
+tests/test_transcript.py:40: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+retail_context/transcript.py:50: in token_count
+    self._token_count = count(self.full_text)
+                        ^^^^^^^^^^^^^^^^^^^^^
+retail_context/tokens.py:38: in count
+    resp = get_client().messages.count_tokens(
+.venv/lib/python3.13/site-packages/anthropic/resources/messages/messages.py:1228: in count_tokens
+    return self._post(
+.venv/lib/python3.13/site-packages/anthropic/_base_client.py:1324: in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <anthropic.Anthropic object at 0x7ee87ca3f620>
+cast_to = <class 'anthropic.types.message_tokens_count.MessageTokensCount'>
+options = FinalRequestOptions(method='post', url='/v1/messages/count_tokens', params={}, headers=NOT_GIVEN, max_retries=NOT_GIVE... running out of time. What can you do to help me right now?'}], 'model': 'claude-haiku-4-5-20251001'}, extra_json=None)
+stream = False, stream_cls = None
+
+    def request(
+        self,
+        cast_to: Type[ResponseT],
+        options: FinalRequestOptions,
+        *,
+        stream: bool = False,
+        stream_cls: type[_StreamT] | None = None,
+    ) -> ResponseT | _StreamT:
+        cast_to = self._maybe_override_cast_to(cast_to, options)
+    
+        # create a copy of the options we were given so that if the
+        # options are mutated later & we then retry, the retries are
+        # given the original options
+        input_options = model_copy(options)
+        if input_options.idempotency_key is None and input_options.method.lower() != "get":
+            # ensure the idempotency key is reused between requests
+            input_options.idempotency_key = self._idempotency_key()
+    
+        response: httpx.Response | None = None
+        max_retries = input_options.get_max_retries(self.max_retries)
+    
+        retries_taken = 0
+        for retries_taken in range(max_retries + 1):
+            options = model_copy(input_options)
+            options = self._prepare_options(options)
+    
+            remaining_retries = max_retries - retries_taken
+            request = self._build_request(options, retries_taken=retries_taken)
+            self._prepare_request(request)
+    
+            kwargs: HttpxSendArgs = {}
+            if self.custom_auth is not None:
+                kwargs["auth"] = self.custom_auth
+    
+            if options.follow_redirects is not None:
+                kwargs["follow_redirects"] = options.follow_redirects
+    
+            log.debug("Sending HTTP Request: %s %s", request.method, request.url)
+    
+            response = None
+            try:
+                response = self._client.send(
+                    request,
+                    stream=stream or self._should_stream_response_body(request=request),
+                    **kwargs,
+                )
+            except httpx.TimeoutException as err:
+                log.debug("Encountered httpx.TimeoutException", exc_info=True)
+    
+                if remaining_retries > 0:
+                    self._sleep_for_retry(
+                        retries_taken=retries_taken,
+                        max_retries=max_retries,
+                        options=input_options,
+                        response=None,
+                    )
+                    continue
+    
+                log.debug("Raising timeout error")
+                raise APITimeoutError(request=request) from err
+            except Exception as err:
+                log.debug("Encountered Exception", exc_info=True)
+    
+                if remaining_retries > 0:
+                    self._sleep_for_retry(
+                        retries_taken=retries_taken,
+                        max_retries=max_retries,
+                        options=input_options,
+                        response=None,
+                    )
+                    continue
+    
+                log.debug("Raising connection error")
+                raise APIConnectionError(request=request) from err
+    
+            log.debug(
+                'HTTP Response: %s %s "%i %s" %s',
+                request.method,
+                request.url,
+                response.status_code,
+                response.reason_phrase,
+                response.headers,
+            )
+            log.debug("request_id: %s", response.headers.get("request-id"))
+    
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
+                log.debug("Encountered httpx.HTTPStatusError", exc_info=True)
+    
+                if remaining_retries > 0 and self._should_retry(err.response):
+                    err.response.close()
+                    self._sleep_for_retry(
+                        retries_taken=retries_taken,
+                        max_retries=max_retries,
+                        options=input_options,
+                        response=response,
+                    )
+                    continue
+    
+                # If the response is streamed then we need to explicitly read the response
+                # to completion before attempting to access the response text.
+                if not err.response.is_closed:
+                    err.response.read()
+    
+                log.debug("Re-raising status error")
+>               raise self._make_status_error_from_response(err.response) from None
+E               anthropic.AuthenticationError: Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}, 'request_id': 'req_011CfTrnPp89ZC13UHsbQyKD'}
+
+.venv/lib/python3.13/site-packages/anthropic/_base_client.py:1112: AuthenticationError
+_______________ test_canonical_token_function_is_used_everywhere _______________
+
+t = Transcript(turns=[Turn(turn=1, role='customer', text="Hi there, I really need some help today because I am absolutely ... scared of running out of time. What can you do to help me right now?', issue_id='payment_update')], status='active')])
+
+    def test_canonical_token_function_is_used_everywhere(t):
+        # Spot check: count(full_text) equals .token_count
+>       assert count(t.full_text) == t.token_count
+               ^^^^^^^^^^^^^^^^^^
+
+tests/test_transcript.py:55: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+retail_context/tokens.py:38: in count
+    resp = get_client().messages.count_tokens(
+.venv/lib/python3.13/site-packages/anthropic/resources/messages/messages.py:1228: in count_tokens
+    return self._post(
+.venv/lib/python3.13/site-packages/anthropic/_base_client.py:1324: in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <anthropic.Anthropic object at 0x7ee87ca3f620>
+cast_to = <class 'anthropic.types.message_tokens_count.MessageTokensCount'>
+options = FinalRequestOptions(method='post', url='/v1/messages/count_tokens', params={}, headers=NOT_GIVEN, max_retries=NOT_GIVE... running out of time. What can you do to help me right now?'}], 'model': 'claude-haiku-4-5-20251001'}, extra_json=None)
+stream = False, stream_cls = None
+
+    def request(
+        self,
+        cast_to: Type[ResponseT],
+        options: FinalRequestOptions,
+        *,
+        stream: bool = False,
+        stream_cls: type[_StreamT] | None = None,
+    ) -> ResponseT | _StreamT:
+        cast_to = self._maybe_override_cast_to(cast_to, options)
+    
+        # create a copy of the options we were given so that if the
+        # options are mutated later & we then retry, the retries are
+        # given the original options
+        input_options = model_copy(options)
+        if input_options.idempotency_key is None and input_options.method.lower() != "get":
+            # ensure the idempotency key is reused between requests
+            input_options.idempotency_key = self._idempotency_key()
+    
+        response: httpx.Response | None = None
+        max_retries = input_options.get_max_retries(self.max_retries)
+    
+        retries_taken = 0
+        for retries_taken in range(max_retries + 1):
+            options = model_copy(input_options)
+            options = self._prepare_options(options)
+    
+            remaining_retries = max_retries - retries_taken
+            request = self._build_request(options, retries_taken=retries_taken)
+            self._prepare_request(request)
+    
+            kwargs: HttpxSendArgs = {}
+            if self.custom_auth is not None:
+                kwargs["auth"] = self.custom_auth
+    
+            if options.follow_redirects is not None:
+                kwargs["follow_redirects"] = options.follow_redirects
+    
+            log.debug("Sending HTTP Request: %s %s", request.method, request.url)
+    
+            response = None
+            try:
+                response = self._client.send(
+                    request,
+                    stream=stream or self._should_stream_response_body(request=request),
+                    **kwargs,
+                )
+            except httpx.TimeoutException as err:
+                log.debug("Encountered httpx.TimeoutException", exc_info=True)
+    
+                if remaining_retries > 0:
+                    self._sleep_for_retry(
+                        retries_taken=retries_taken,
+                        max_retries=max_retries,
+                        options=input_options,
+                        response=None,
+                    )
+                    continue
+    
+                log.debug("Raising timeout error")
+                raise APITimeoutError(request=request) from err
+            except Exception as err:
+                log.debug("Encountered Exception", exc_info=True)
+    
+                if remaining_retries > 0:
+                    self._sleep_for_retry(
+                        retries_taken=retries_taken,
+                        max_retries=max_retries,
+                        options=input_options,
+                        response=None,
+                    )
+                    continue
+    
+                log.debug("Raising connection error")
+                raise APIConnectionError(request=request) from err
+    
+            log.debug(
+                'HTTP Response: %s %s "%i %s" %s',
+                request.method,
+                request.url,
+                response.status_code,
+                response.reason_phrase,
+                response.headers,
+            )
+            log.debug("request_id: %s", response.headers.get("request-id"))
+    
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
+                log.debug("Encountered httpx.HTTPStatusError", exc_info=True)
+    
+                if remaining_retries > 0 and self._should_retry(err.response):
+                    err.response.close()
+                    self._sleep_for_retry(
+                        retries_taken=retries_taken,
+                        max_retries=max_retries,
+                        options=input_options,
+                        response=response,
+                    )
+                    continue
+    
+                # If the response is streamed then we need to explicitly read the response
+                # to completion before attempting to access the response text.
+                if not err.response.is_closed:
+                    err.response.read()
+    
+                log.debug("Re-raising status error")
+>               raise self._make_status_error_from_response(err.response) from None
+E               anthropic.AuthenticationError: Error code: 401 - {'type': 'error', 'error': {'type': 'authentication_error', 'message': 'invalid x-api-key'}, 'request_id': 'req_011CfTrnQnRWHMFj9U1JVRNL'}
+
+.venv/lib/python3.13/site-packages/anthropic/_base_client.py:1112: AuthenticationError
+=========================== short test summary info ============================
+FAILED tests/test_pruner.py::test_pruned_output_under_200_tokens - anthropic....
+FAILED tests/test_tokens.py::test_count_returns_positive_int_for_nonempty_text
+FAILED tests/test_tokens.py::test_count_grows_with_length - anthropic.Authent...
+FAILED tests/test_transcript.py::test_transcript_loader_token_count_in_engineered_range
+FAILED tests/test_transcript.py::test_canonical_token_function_is_used_everywhere
+========================= 5 failed, 25 passed in 1.67s =========================
